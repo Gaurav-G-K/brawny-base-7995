@@ -7,6 +7,7 @@ import com.masai.entity.Book;
 import com.masai.exceptions.NoRecordFoundException;
 import com.masai.exceptions.SomethingWentWrongException;
 import com.masai.util.EmfUtil;
+import jakarta.persistence.Query;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -16,14 +17,25 @@ import jakarta.persistence.PersistenceException;
 public class BookDAOImpl implements BookDAO {
 	
 	@Override
-	public List<com.masai.entity.Book> allBook() {
-		
-		return null;
+	public List<Book> allBook() throws SomethingWentWrongException {
+		EntityManager em = null;
+		List<Book> Books=null;
+		try {
+			em = EmfUtil.getEntityManager();
+			String s = "SELECT b FROM Book b";
+			Query query = em.createQuery(s);
+			Books=query.getResultList();
+		}catch(PersistenceException ex) {
+			throw new SomethingWentWrongException("Unable to add book, try again later");
+		}finally {
+			em.close();
+		}
+		return Books;
 	}
 	
 	@Override
-	public void addBook(Book book) throws SomethingWentWrongException {
-		EntityManager em = null;
+	public String addBook(Book book) throws SomethingWentWrongException {
+		EntityManager em=null;
 		EntityTransaction et = null;
 		try {
 			em = EmfUtil.getEntityManager();
@@ -31,11 +43,10 @@ public class BookDAOImpl implements BookDAO {
 			et.begin();
 			em.persist(book);
 			et.commit();
+			return "Book Added Successfully";
 		}catch(PersistenceException ex) {
 			et.rollback();
 			throw new SomethingWentWrongException("Unable to add book, try again later");
-		}finally {
-			em.close();
 		}
 	}
 
@@ -54,9 +65,10 @@ public class BookDAOImpl implements BookDAO {
 	}
 
 	@Override
-	public void updateBookPrice(int id, BigDecimal price) throws SomethingWentWrongException, NoRecordFoundException {
+	public String updateBookPrice(int id, Double price) throws SomethingWentWrongException, NoRecordFoundException {
 		Book book = getBookById(id);
-		
+		if(book==null)
+			return "Book not resisterd";
 		EntityManager em = null;
 		EntityTransaction et = null;
 		try {
@@ -66,17 +78,20 @@ public class BookDAOImpl implements BookDAO {
 			book = em.merge(book);
 			book.setPrice(price);
 			et.commit();
+			return "Book Price Updated";
 		}catch(PersistenceException ex) {
 			et.rollback();
-			throw new SomethingWentWrongException("Unable to add book, try again later");
+			throw new SomethingWentWrongException("Unable to Update price, try again later");
 		}finally {
 			em.close();
 		}
 	}
 
 	@Override
-	public void deleteBookById(int id) throws SomethingWentWrongException, NoRecordFoundException {
+	public String deleteBookById(int id) throws SomethingWentWrongException, NoRecordFoundException {
 		Book book = getBookById(id);
+		if(book==null)
+			return "Book not resistered";
 		EntityManager em = null;
 		EntityTransaction et = null;
 		try {
@@ -86,6 +101,7 @@ public class BookDAOImpl implements BookDAO {
 			book = em.merge(book);
 			em.remove(book);
 			et.commit();
+			return "Book deleted successfully";
 		}catch(PersistenceException ex) {
 			et.rollback();
 			ex.printStackTrace();
@@ -96,8 +112,10 @@ public class BookDAOImpl implements BookDAO {
 	}
 
 	@Override
-	public void increaseQuantity(int id, int n) throws SomethingWentWrongException, NoRecordFoundException {
+	public String increaseQuantity(int id, int n) throws SomethingWentWrongException, NoRecordFoundException {
 		Book book = getBookById(id);
+		if(book==null)
+			return "Book not resistered";
 		EntityManager em = null;
 		EntityTransaction et = null;
 		try {
@@ -107,6 +125,7 @@ public class BookDAOImpl implements BookDAO {
 			book = em.merge(book);
 			book.setTotal(book.getTotal()+n);
 			et.commit();
+			return "Book quantity increases";
 		}catch(PersistenceException ex) {
 			et.rollback();
 			throw new SomethingWentWrongException("Unable to add book, try again later");
@@ -116,8 +135,10 @@ public class BookDAOImpl implements BookDAO {
 	}
 
 	@Override
-	public void decreaseQuantity(int id, int n) throws SomethingWentWrongException, NoRecordFoundException {
+	public String decreaseQuantity(int id, int n) throws SomethingWentWrongException, NoRecordFoundException {
 		Book book = getBookById(id);
+		if(book==null)
+			return "Book not resistered";
 		EntityManager em = null;
 		EntityTransaction et = null;
 		try {
@@ -125,11 +146,13 @@ public class BookDAOImpl implements BookDAO {
 			et = em.getTransaction();
 			et.begin();
 			book = em.merge(book);
-			if(book.getTotal()>=n)
+			if(book.getTotal()>=n){
 			book.setTotal(book.getTotal()-n);
+			et.commit();
+			return "Book quantity decreases";
+			}
 			else
 				throw new SomethingWentWrongException("Book Quantity is less then "+n);
-			et.commit();
 		}catch(PersistenceException ex) {
 			et.rollback();
 			throw new SomethingWentWrongException("Unable to add book, try again later");
@@ -139,17 +162,31 @@ public class BookDAOImpl implements BookDAO {
 	}
 
 	@Override
-	public List<Book> availableBooks()
-			throws SomethingWentWrongException, NoRecordFoundException {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Book> availableBooks() throws SomethingWentWrongException, NoRecordFoundException {
+		List<Book> Books=null;
+		try(EntityManager em=EmfUtil.getEntityManager())
+		{
+			String s="SELECT b from Book WHERE rented<total";
+			Query query =em.createQuery(s);
+			Books=query.getResultList();
+			if(Books.size()==0)
+				throw new NoRecordFoundException("No Books Available");
+		}
+		return Books;
 	}
 
 	@Override
-	public void rentedBooks()
-			throws com.masai.exceptions.SomethingWentWrongException, com.masai.exceptions.NoRecordFoundException {
-		// TODO Auto-generated method stub
-		
+	public List<Book> rentedBooks() throws SomethingWentWrongException, NoRecordFoundException {
+		List<Book> Books =null;
+		try(EntityManager em=EmfUtil.getEntityManager())
+		{
+			String s="SELECT b FROM Book where rented>0";
+			Query query=em.createQuery(s);
+			Books =query.getResultList();
+			if(Books.size()==0)
+				throw new NoRecordFoundException("No Books Are rented");
+		}
+		return null;
 	}
-	
+
 }

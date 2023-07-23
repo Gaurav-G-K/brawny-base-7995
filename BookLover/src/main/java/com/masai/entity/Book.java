@@ -1,7 +1,5 @@
 package com.masai.entity;
 
-
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.persistence.Column;
@@ -23,13 +21,13 @@ public class Book {
 	@Column(length = 40, nullable = false)
 	private String author;
 	@Column(name="total_books")
-	private int Total;
+	private int total;
 	@Column(name="available_books")
 	private int available;
 	@Column(name="rented_books")
 	private int rented;
-	@Column(nullable = false, precision = 7, scale = 2)	//DECIMAL(7,2) ---> XXXXX.YY (Max value: 99999.99)
-	private BigDecimal price;
+	@Column(nullable = false, precision = 7, scale = 2)	
+	private Double price;
 	
 	@Column(name = "publish_date")
 	private LocalDate publishDate;
@@ -38,6 +36,21 @@ public class Book {
 		super();
 		// TODO Auto-generated constructor stub
 	}
+	
+	
+	public Book(int id, String title, String author, int total, int available, int rented, Double price,
+			LocalDate publishDate) {
+		super();
+		this.id = id;
+		this.title = title;
+		this.author = author;
+		this.total = total;
+		this.available = available;
+		this.rented = rented;
+		this.price = price;
+		this.publishDate = publishDate;
+	}
+
 
 	public int getId() {
 		return id;
@@ -64,11 +77,11 @@ public class Book {
 	}
 
 	public int getTotal() {
-		return Total;
+		return total;
 	}
 
 	public void setTotal(int total) {
-		Total = total;
+		total = total;
 	}
 
 	public int getAvailable() {
@@ -87,11 +100,11 @@ public class Book {
 		this.rented = rented;
 	}
 
-	public BigDecimal getPrice() {
+	public Double getPrice() {
 		return price;
 	}
 
-	public void setPrice(BigDecimal price) {
+	public void setPrice(Double price) {
 		this.price = price;
 	}
 
@@ -105,7 +118,7 @@ public class Book {
 
 	@Override
 	public String toString() {
-		return "Book [id=" + id + ", title=" + title + ", author=" + author + ", Total=" + Total + ", available="
+		return "Book [id=" + id + ", title=" + title + ", author=" + author + ", total=" + total + ", available="
 				+ available + ", rented=" + rented + ", price=" + price + ", publishDate=" + publishDate + "]";
 	}
 }
