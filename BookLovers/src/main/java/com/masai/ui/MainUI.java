@@ -53,7 +53,7 @@ public class MainUI {
 		System.out.print("Enter id of book");
 		int id = sc.nextInt();
 		System.out.print("Enter price ");
-		BigDecimal price =new BigDecimal(sc.nextLine());
+		BigDecimal price=new BigDecimal(sc.nextLine());
 		//Create of object of BookService
 		BookService bookService = new BookServiceImpl();
 		try {

@@ -18,20 +18,31 @@ public class BookDAOImpl implements BookDAO {
 	
 	@Override
 	public List<Book> allBook() throws SomethingWentWrongException {
-		EntityManager em = null;
-		List<Book> Books=null;
-		try {
-			em = EmfUtil.getEntityManager();
-			String s = "SELECT b FROM Book b";
-			Query query = em.createQuery(s);
-			Books=query.getResultList();
-		}catch(PersistenceException ex) {
-			throw new SomethingWentWrongException("Unable to add book, try again later");
-		}finally {
-			em.close();
-		}
-		return Books;
+	    List<Book> Books = null;
+	    try (EntityManager em = EmfUtil.getEntityManager()) {
+	        String s = "SELECT b FROM Book b";
+	        Query query = em.createQuery(s);
+	        Books = query.getResultList();
+	    } catch (PersistenceException ex) {
+	        throw new SomethingWentWrongException("Unable to add book, try again later");
+	    }
+	    return Books;
 	}
+//	public List<Book> allBook() throws SomethingWentWrongException {
+//		EntityManager em = null;
+//		List<Book> Books=null;
+//		try {
+//			em = EmfUtil.getEntityManager();
+//			String s = "SELECT b FROM Book b";
+//			Query query = em.createQuery(s);
+//			Books=query.getResultList();
+//		}catch(PersistenceException ex) {
+//			throw new SomethingWentWrongException("Unable to add book, try again later");
+//		}finally {
+//			em.close();
+//		}
+//		return Books;
+//	}
 	
 	@Override
 	public String addBook(Book book) throws SomethingWentWrongException {

@@ -27,7 +27,8 @@ public class Book {
 	private int available;
 	@Column(name="rented_books")
 	private int rented;
-	@Column(nullable = false, precision = 7, scale = 2)	
+//	@Column(nullable = false, precision = 7, scale = 2)	
+	@Column(nullable = false, columnDefinition = "DECIMAL(10, 2)")
 	private BigDecimal price;
 	
 	@Column(name = "publish_date")
@@ -105,8 +106,8 @@ public class Book {
 		return price;
 	}
 
-	public void setPrice(BigDecimal price2) {
-		this.price = price2;
+	public void setPrice(BigDecimal price) {
+		this.price = price;
 	}
 
 	public LocalDate getPublishDate() {
